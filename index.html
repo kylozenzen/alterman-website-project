@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alterman — Redesign Concept by Ben Campbell</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; background: #001335; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  /* SPLASH */
+  #splash {
+    min-height: 100vh; background: #001335; color: white;
+    display: flex; flex-direction: column; position: relative; overflow: hidden;
+  }
+  .splash-bg-text {
+    position: absolute; bottom: -40px; right: -20px;
+    font-size: clamp(120px, 22vw, 260px); font-weight: 900;
+    color: rgba(255,255,255,0.04); line-height: 1;
+    pointer-events: none; user-select: none; letter-spacing: -0.06em;
+  }
+  .splash-inner {
+    flex: 1; display: flex; flex-direction: column; justify-content: center;
+    padding: 60px 48px 40px; max-width: 860px;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(175,48,0,0.9); color: white;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.28em; text-transform: uppercase;
+    padding: 7px 14px; margin-bottom: 28px; width: fit-content;
+  }
+  .badge-dot { width: 6px; height: 6px; background: #ffb59f; border-radius: 50%; display: inline-block; }
+  .splash-inner h1 {
+    font-size: clamp(38px, 7vw, 72px); font-weight: 900; line-height: 0.92;
+    letter-spacing: -0.06em; color: white; margin-bottom: 24px;
+  }
+  .splash-inner h1 span { color: #aec6ff; }
+  .splash-divider { width: 48px; height: 3px; background: #af3000; margin-bottom: 28px; }
+  .splash-inner p {
+    font-size: clamp(15px, 2vw, 19px); font-weight: 300; line-height: 1.75;
+    color: rgba(255,255,255,0.78); max-width: 600px; margin-bottom: 16px;
+  }
+  .splash-inner p strong { color: white; font-weight: 600; }
+  .cta-row { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; }
+  .btn-primary {
+    background: #af3000; color: white; font-size: 11px; font-weight: 800;
+    letter-spacing: 0.24em; text-transform: uppercase; padding: 16px 32px;
+    border: none; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #d44000; }
+  .btn-secondary {
+    background: rgba(255,255,255,0.08); color: white; font-size: 11px; font-weight: 800;
+    letter-spacing: 0.24em; text-transform: uppercase; padding: 16px 32px;
+    border: 1px solid rgba(255,255,255,0.22); cursor: pointer; transition: background 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.14); }
+  .splash-footer {
+    border-top: 1px solid rgba(255,255,255,0.1); padding: 18px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+  }
+  .author-line { display: flex; align-items: center; gap: 10px; }
+  .author-avatar {
+    width: 30px; height: 30px; background: #af3000; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; color: white; letter-spacing: 0.02em; flex-shrink: 0;
+  }
+  .author-name { font-size: 13px; font-weight: 700; color: white; letter-spacing: 0.04em; }
+  .author-role { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+  .author-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.15); margin: 0 4px; }
+  .footer-pills { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pill {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 5px 12px; border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.45);
+  }
+
+  /* WALKTHROUGH BAR */
+  #walkthrough-bar {
+    background: #001335; color: white; display: none;
+    align-items: center; justify-content: space-between;
+    padding: 12px 24px; gap: 16px; flex-wrap: wrap;
+    border-bottom: 2px solid #af3000;
+    position: sticky; top: 0; z-index: 9999;
+  }
+  #walkthrough-bar.visible { display: flex; }
+  .wt-step-label { font-size: 10px; font-weight: 800; letter-spacing: 0.28em; text-transform: uppercase; color: #ffb59f; }
+  .wt-step-copy { font-size: 13px; color: rgba(255,255,255,0.82); font-weight: 400; flex: 1; min-width: 160px; }
+  .wt-btn-row { display: flex; gap: 8px; }
+  .wt-btn {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 8px 16px; border: 1px solid rgba(255,255,255,0.25);
+    background: transparent; color: white; cursor: pointer; transition: background 0.15s;
+  }
+  .wt-btn:hover { background: rgba(255,255,255,0.1); }
+  .wt-btn.exit { border-color: #af3000; color: #ffb59f; }
+  .wt-progress { font-size: 10px; color: rgba(255,255,255,0.4); font-weight: 700; letter-spacing: 0.12em; white-space: nowrap; }
+
+  #demo-wrapper { display: none; }
+  #demo-wrapper.active { display: block; min-height: 100vh; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-bg-text">1923</div>
+  <div class="splash-inner">
+    <div class="badge"><span class="badge-dot"></span> Design Concept — Not the live site</div>
+    <h1>Your website is your <span>front door.</span></h1>
+    <div class="splash-divider"></div>
+    <p>Alterman has been building complex electrical and industrial infrastructure across the country since 1923. But a legacy of excellence deserves a digital presence that matches it.</p>
+    <p>This is a <strong>high-level redesign concept</strong> — a vision for how Alterman.com could look and feel with fresh creative direction, stronger storytelling, and a more premium user experience.</p>
+    <p>The current site is solid. This is about <strong>leveling it up</strong>: cleaner service pages, a sharper homepage impression, and project storytelling that does justice to the scale of what Alterman actually builds.</p>
+    <div class="cta-row">
+      <button class="btn-primary" onclick="launchDemo(false)">Explore the Concept →</button>
+      <button class="btn-secondary" onclick="launchDemo(true)">Take a Guided Walkthrough</button>
+    </div>
+  </div>
+  <div class="splash-footer">
+    <div class="author-line">
+      <div class="author-avatar">BC</div>
+      <div>
+        <div class="author-name">Ben Campbell</div>
+        <div class="author-role">Marketing Manager Applicant</div>
+      </div>
+      <div class="author-divider"></div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.28);font-weight:500;letter-spacing:0.08em;">3 pages &nbsp;·&nbsp; 5 sections &nbsp;·&nbsp; 1 big idea</div>
+    </div>
+    <div class="footer-pills">
+      <div class="pill">Homepage</div>
+      <div class="pill">Services</div>
+      <div class="pill">Project Detail</div>
+      <div class="pill">Brand Story</div>
+      <div class="pill">Contact</div>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO WRAPPER -->
+<div id="demo-wrapper">
+  <div id="walkthrough-bar">
+    <div style="display:flex;align-items:center;gap:20px;flex:1;min-width:0;flex-wrap:wrap;">
+      <div id="wt-step-label" class="wt-step-label">Step 1 of 5</div>
+      <div id="wt-step-copy" class="wt-step-copy">You're looking at the homepage hero — a stronger first impression anchored by credibility signals and a clear call to action.</div>
+    </div>
+    <div class="wt-btn-row">
+      <span class="wt-progress" id="wt-progress">1 / 5</span>
+      <button class="wt-btn" onclick="wtPrev()">← Prev</button>
+      <button class="wt-btn" id="wt-next-btn" onclick="wtNext()">Next →</button>
+      <button class="wt-btn exit" onclick="exitWalkthrough()">✕ Exit</button>
+    </div>
+  </div>
+  <div id="demo-mount"></div>
+</div>
+
+<script>
+const walkthroughSteps = [
+  { label:"Step 1 of 5", copy:"Homepage hero — a stronger first impression anchored by credibility signals and a clear, confident call to action.", page:"home", scroll:0 },
+  { label:"Step 2 of 5", copy:"Stats bar — 100 years of excellence, employee ownership, and a best-in-class safety record. Data that builds trust fast.", page:"home", scroll:400 },
+  { label:"Step 3 of 5", copy:"Capabilities grid — Alterman's four key sectors (Data Centers, Healthcare, Industrial, Renewable Energy) with immersive imagery.", page:"home", scroll:900 },
+  { label:"Step 4 of 5", copy:"Services page — six service categories, each with full-bleed photography and clear copywriting. A cleaner, more premium feel.", page:"services", scroll:0 },
+  { label:"Step 5 of 5", copy:"Project detail — the Texas A&M SA Science & Technology Building. Case-study layout with specs, gallery, and scope of work.", page:"project", scroll:0 },
+];
+
+let wtIndex = 0;
+
+function launchDemo(withWalkthrough) {
+  document.getElementById('splash').style.display = 'none';
+  const dw = document.getElementById('demo-wrapper');
+  dw.classList.add('active');
+  if (withWalkthrough) {
+    document.getElementById('walkthrough-bar').classList.add('visible');
+    wtIndex = 0;
+    applyWtStep();
+  }
+  if (!window.__demoLoaded) {
+    window.__demoLoaded = true;
+    initReactApp();
+  }
+}
+
+function applyWtStep() {
+  const s = walkthroughSteps[wtIndex];
+  document.getElementById('wt-step-label').textContent = s.label;
+  document.getElementById('wt-step-copy').textContent = s.copy;
+  document.getElementById('wt-progress').textContent = (wtIndex+1) + ' / ' + walkthroughSteps.length;
+  document.getElementById('wt-next-btn').textContent = wtIndex === walkthroughSteps.length-1 ? 'Finish ✓' : 'Next →';
+  if (window.__setDemoPage) {
+    window.__setDemoPage(s.page);
+    setTimeout(() => window.scrollTo({ top: s.scroll + 60, behavior: 'smooth' }), 120);
+  } else {
+    window.__pendingPage = s.page;
+  }
+}
+
+function wtNext() {
+  if (wtIndex < walkthroughSteps.length - 1) { wtIndex++; applyWtStep(); }
+  else { exitWalkthrough(); }
+}
+function wtPrev() { if (wtIndex > 0) { wtIndex--; applyWtStep(); } }
+function exitWalkthrough() {
+  document.getElementById('walkthrough-bar').classList.remove('visible');
+}
+
+function initReactApp() {
+  const script = document.createElement('script');
+  script.type = 'text/babel';
+  script.textContent = APP_CODE;
+  document.body.appendChild(script);
+  Babel.transformScriptTags();
+}
+</script>
+
+<script>
+const APP_CODE = `
+const { useState, useEffect } = React;
+
+function AltermanDemo() {
+  const [page, setPage] = useState(window.__pendingPage || 'home');
+
+  useEffect(() => {
+    window.__setDemoPage = (p) => setPage(p);
+    if (window.__pendingPage) { setPage(window.__pendingPage); window.__pendingPage = null; }
+    return () => { window.__setDemoPage = null; };
+  }, []);
+
+  const caps = [
+    { label:'Sector 01', title:'Data Centers', copy:'Mission-critical power distribution and redundancy systems for hyper-scale facilities.', img:'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80' },
+    { label:'Sector 02', title:'Healthcare', copy:'Advanced electrical engineering for acute care, diagnostics, and life-support environments.', img:'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200&q=80' },
+    { label:'Sector 03', title:'Industrial', copy:'Heavy-duty power solutions for manufacturing and high-demand operational environments.', img:'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=1200&q=80' },
+    { label:'Sector 04', title:'Renewable Energy', copy:'Sustainable energy integration, grid storage, and future-focused infrastructure development.', img:'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1200&q=80' },
+  ];
+
+  const svcs = [
+    { title:'Electrical Construction', copy:'Large-scale commercial and industrial electrical infrastructure delivered on time, in spec, and built to last — from design through commissioning.', img:'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80' },
+    { title:'Technologies', copy:'Low voltage cabling, fiber optics, networking infrastructure, and integrated building systems that keep facilities connected and operational.', img:'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80' },
+    { title:'Industrial Solutions', copy:'Water treatment, wastewater, and manufacturing environments demand precision. Alterman delivers complete electrical frameworks for complex industrial operations.', img:'https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=80' },
+    { title:'Instrumentation & Control', copy:'Turn-key automation upgrades and precise control logic for demanding environments — from SCADA integration to panel fabrication.', img:'https://images.unsplash.com/photo-1581092335397-9583eb92d232?auto=format&fit=crop&w=1200&q=80' },
+    { title:'Service & Maintenance', copy:'24/7 emergency response and structured preventative maintenance programs that minimize downtime and protect your infrastructure investment.', img:'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1200&q=80' },
+    { title:'Pre-Construction', copy:"Integrated design services using BIM/CAD modeling and lean management workflows — bringing Alterman's expertise to the table before the first wire is pulled.", img:'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80' },
+  ];
+
+  const heroImg = 'https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&w=1800&q=80';
+  const projHero = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1800&q=80';
+  const ownerImg = 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1400&q=80';
+  const gallery = [
+    'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=1200&q=80',
+  ];
+
+  const navBtn = (key, label) => (
+    <button onClick={() => setPage(key)} style={{
+      background:'none', border:'none', cursor:'pointer',
+      fontSize:'11px', fontWeight:800, letterSpacing:'0.24em', textTransform:'uppercase',
+      color: page===key ? '#af3000' : '#001335',
+      borderBottom: page===key ? '2px solid #af3000' : '2px solid transparent',
+      paddingBottom:'4px', transition:'color 0.2s', fontFamily:'Inter,sans-serif'
+    }}>{label}</button>
+  );
+
+  const S = { fontFamily:'Inter,sans-serif' };
+
+  return (
+    <div style={{...S, minHeight:'100vh', background:'#fcf9f8', color:'#1b1c1c'}}>
+
+      {/* NAV */}
+      <nav style={{position:'sticky',top:0,zIndex:100,background:'rgba(255,255,255,0.97)',backdropFilter:'blur(12px)',borderBottom:'1px solid #e2e4e9'}}>
+        <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 32px'}}>
+          <div style={{fontSize:'clamp(28px,4vw,38px)',fontWeight:900,letterSpacing:'-0.06em',color:'#001335',fontFamily:'Inter,sans-serif'}}>ALTERMAN</div>
+          <div style={{display:'flex',gap:28,alignItems:'center'}}>
+            {navBtn('home','Home')}
+            {navBtn('services','Services')}
+            {navBtn('project','Project')}
+          </div>
+          <button style={{background:'#00275d',color:'white',border:'none',padding:'12px 24px',fontSize:'10px',fontWeight:800,letterSpacing:'0.24em',textTransform:'uppercase',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+            Partner With Us
+          </button>
+        </div>
+      </nav>
+
+      {/* ── HOME ── */}
+      {page==='home' && <>
+
+        {/* Hero */}
+        <section style={{position:'relative',minHeight:'88vh',display:'flex',alignItems:'center',overflow:'hidden',color:'white'}}>
+          <img src={heroImg} alt="hero" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
+          <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,rgba(0,19,53,0.93) 0%,rgba(0,19,53,0.62) 55%,transparent 100%)'}} />
+          <div style={{position:'relative',maxWidth:1200,margin:'0 auto',padding:'80px 32px',width:'100%'}}>
+            <div style={{display:'inline-block',background:'#af3000',padding:'8px 18px',fontSize:'10px',fontWeight:800,letterSpacing:'0.28em',textTransform:'uppercase',marginBottom:24}}>Established 1923</div>
+            <h1 style={{fontSize:'clamp(40px,7vw,82px)',fontWeight:900,lineHeight:0.9,letterSpacing:'-0.06em',maxWidth:720,marginBottom:24,fontFamily:'Inter,sans-serif'}}>
+              Precision in Power.<br/><span style={{color:'#aec6ff'}}>Excellence in Execution.</span>
+            </h1>
+            <p style={{fontSize:'clamp(16px,2vw,22px)',fontWeight:300,lineHeight:1.75,maxWidth:560,color:'rgba(255,255,255,0.82)',marginBottom:36}}>
+              Over a century of electrical construction, industrial systems, and mission-critical infrastructure — delivered by people who own what they build.
+            </p>
+            <div style={{display:'flex',gap:14,flexWrap:'wrap'}}>
+              <button onClick={()=>setPage('project')} style={{background:'#af3000',color:'white',border:'none',padding:'16px 32px',fontSize:'11px',fontWeight:800,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Explore Our Projects</button>
+              <button onClick={()=>setPage('services')} style={{background:'rgba(255,255,255,0.08)',color:'white',border:'1px solid rgba(255,255,255,0.25)',padding:'16px 32px',fontSize:'11px',fontWeight:800,letterSpacing:'0.2em',textTransform:'uppercase',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Our Services</button>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats */}
+        <section style={{background:'#f0eded',borderBottom:'1px solid rgba(196,198,209,0.4)',padding:'36px 32px'}}>
+          <div style={{maxWidth:1200,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:24}}>
+            {[['100+','Years of Excellence'],['100%','Employee Owned'],['National','Project Reach'],['0.45','Safety First EMR']].map(([v,l])=>(
+              <div key={l} style={{textAlign:'center'}}>
+                <div style={{fontSize:'clamp(24px,4vw,36px)',fontWeight:900,color:'#001335'}}>{v}</div>
+                <div style={{marginTop:8,fontSize:'10px',fontWeight:700,letterSpacing:'0.24em',textTransform:'uppercase',color:'#6b7280'}}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Capabilities */}
+        <section style={{background:'white',padding:'80px 32px'}}>
+          <div style={{maxWidth:1200,margin:'0 auto'}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:48,marginBottom:60,alignItems:'start'}}>
+              <div>
+                <h2 style={{fontSize:'clamp(36px,5vw,56px)',fontWeight:900,textTransform:'uppercase',letterSpacing:'-0.05em',color:'#001335',lineHeight:1,fontFamily:'Inter,sans-serif'}}>Our<br/>Capabilities</h2>
+                <div style={{marginTop:20,height:4,width:56,background:'#af3000'}}/>
+              </div>
+              <p style={{fontSize:'clamp(16px,1.8vw,22px)',fontWeight:300,lineHeight:1.75,color:'#6b7280',alignSelf:'center'}}>
+                From data centers and hospitals to water treatment plants and renewable energy — Alterman brings deep expertise and employee-owned accountability to every project.
+              </p>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
+              {caps.map(c=>(
+                <div key={c.title} style={{position:'relative',minHeight:400,overflow:'hidden',background:'#001335'}}>
+                  <img src={c.img} alt={c.title} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',opacity:0.6}} />
+                  <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(0,19,53,0.95) 0%,rgba(0,19,53,0.3) 60%,transparent 100%)'}} />
+                  <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:28}}>
+                    <div style={{fontSize:'10px',fontWeight:800,letterSpacing:'0.24em',textTransform:'uppercase',color:'#ffb59f',marginBottom:6}}>{c.label}</div>
+                    <h3 style={{fontSize:26,fontWeight:900,letterSpacing:'-0.03em',color:'white',marginBottom:10,fontFamily:'Inter,sans-serif'}}>{c.title}</h3>
+                    <p style={{fontSize:13,lineHeight:1.75,color:'rgba(255,255,255,0.75)'}}>{c.copy}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Owner's Edge */}
+        <section style={{background:'#001335',padding:'80px 32px',color:'white',position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',right:-10,top:-20,fontSize:'clamp(100px,20vw,220px)',fontWeight:900,color:'rgba(255,255,255,0.04)',lineHeight:1,pointerEvents:'none',fontFamily:'Inter,sans-serif'}}>1923</div>
+          <div style={{maxWidth:1200,margin:'0 auto',display:'grid',gridTemplateColumns:'1fr 1fr',gap:60,alignItems:'center'}}>
+            <div>
+              <div style={{fontSize:'10px',fontWeight:800,letterSpacing:'0.35em',textTransform:'uppercase',color:'#ffb59f',marginBottom:16}}>The Owner's Edge</div>
+              <h2 style={{fontSize:'clamp(36px,5vw,64px)',fontWeight:900,letterSpacing:'-0.05em',lineHeight:0.95,marginBottom:28,fontFamily:'Inter,sans-serif'}}>Every Voice<br/>Is an Owner.</h2>
+              <p style={{fontSize:17,lineHeight:1.85,color:'rgba(255,255,255,0.72)',marginBottom:16}}>
+                Alterman is 100% employee-owned. That means every electrician, project manager, and engineer on your job site has a direct stake in the quality of the outcome.
+              </p>
+              <p style={{fontSize:17,lineHeight:1.85,color:'rgba(255,255,255,0.72)'}}>
+                It's not just a differentiator — it's the reason Alterman has maintained a 0.45 EMR safety rating and a reputation for zero-failure execution across a century of work.
+              </p>
+            </div>
+            <div style={{position:'relative'}}>
+              <div style={{position:'absolute',inset:-16,background:'rgba(255,255,255,0.05)',transform:'translate(12px,12px)'}}/>
+              <img src={ownerImg} alt="team" style={{position:'relative',width:'100%',minHeight:400,objectFit:'cover'}} />
+            </div>
+          </div>
+        </section>
+      </>}
+
+      {/* ── SERVICES ── */}
+      {page==='services' && <>
+        <section style={{position:'relative',minHeight:'72vh',display:'flex',alignItems:'flex-end',overflow:'hidden',color:'white'}}>
+          <img src={heroImg} alt="services" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
+          <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,rgba(0,19,53,0.92) 0%,rgba(0,19,53,0.6) 55%,transparent 100%)'}} />
+          <div style={{position:'relative',maxWidth:1200,margin:'0 auto',padding:'80px 32px',width:'100%'}}>
+            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:20}}>
+              <div style={{height:1,width:48,background:'#af3000'}}/>
+              <div style={{fontSize:'11px',fontWeight:700,letterSpacing:'0.38em',textTransform:'uppercase',color:'#ffb59f'}}>Industrial Leadership</div>
+            </div>
+            <h2 style={{fontSize:'clamp(44px,8vw,96px)',fontWeight:900,lineHeight:0.9,letterSpacing:'-0.06em',marginBottom:24,fontFamily:'Inter,sans-serif'}}>
+              Built for<br/><span style={{color:'rgba(255,255,255,0.35)'}}>Complexity.</span>
+            </h2>
+            <p style={{fontSize:'clamp(15px,1.8vw,20px)',fontWeight:300,lineHeight:1.75,maxWidth:520,color:'rgba(255,255,255,0.82)',borderLeft:'2px solid #af3000',paddingLeft:20}}>
+              Six service divisions. One standard of excellence. Whether you're building a hospital, a data center, or a water treatment plant — Alterman brings integrated expertise to every phase.
+            </p>
+          </div>
+        </section>
+        <section style={{maxWidth:1200,margin:'0 auto',padding:'80px 32px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+            <div style={{height:1,width:36,background:'#af3000'}}/>
+            <div style={{fontSize:'10px',fontWeight:800,letterSpacing:'0.28em',textTransform:'uppercase',color:'#af3000'}}>Capabilities</div>
+          </div>
+          <h2 style={{fontSize:'clamp(32px,5vw,52px)',fontWeight:900,letterSpacing:'-0.05em',color:'#001335',marginBottom:48,fontFamily:'Inter,sans-serif'}}>Our Services</h2>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:16}}>
+            {svcs.map(s=>(
+              <div key={s.title} style={{position:'relative',minHeight:360,overflow:'hidden'}}>
+                <img src={s.img} alt={s.title} style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
+                <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(0,19,53,0.94) 0%,rgba(0,19,53,0.35) 55%,transparent 100%)'}} />
+                <div style={{position:'relative',height:'100%',display:'flex',flexDirection:'column',justifyContent:'flex-end',padding:'40px 36px'}}>
+                  <h3 style={{fontSize:'clamp(20px,3vw,28px)',fontWeight:900,textTransform:'uppercase',letterSpacing:'-0.02em',color:'white',marginBottom:12,fontFamily:'Inter,sans-serif'}}>{s.title}</h3>
+                  <p style={{fontSize:14,lineHeight:1.8,color:'rgba(255,255,255,0.78)',maxWidth:400}}>{s.copy}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>}
+
+      {/* ── PROJECT ── */}
+      {page==='project' && <>
+        <section style={{position:'relative',minHeight:'95vh',display:'flex',alignItems:'flex-end',overflow:'hidden',color:'white'}}>
+          <img src={projHero} alt="project" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}} />
+          <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(0,19,53,0.96) 0%,rgba(0,19,53,0.3) 55%,transparent 100%)'}} />
+          <div style={{position:'relative',maxWidth:1200,margin:'0 auto',padding:'0 32px 60px',width:'100%'}}>
+            <div style={{display:'inline-block',background:'#af3000',padding:'6px 14px',fontSize:'10px',fontWeight:800,letterSpacing:'0.24em',textTransform:'uppercase',marginBottom:20}}>Featured Infrastructure</div>
+            <h1 style={{fontSize:'clamp(34px,6.5vw,80px)',fontWeight:900,lineHeight:0.9,letterSpacing:'-0.06em',marginBottom:16,fontFamily:'Inter,sans-serif'}}>
+              Texas A&M SA Science &<br/><span style={{color:'#ffb59f'}}>Technology</span> Building
+            </h1>
+            <p style={{fontSize:14,fontWeight:600,letterSpacing:'0.18em',textTransform:'uppercase',color:'rgba(255,255,255,0.7)'}}>San Antonio, Texas — Project Detail</p>
+          </div>
+        </section>
+        <section style={{background:'#f6f3f2',borderBottom:'1px solid rgba(196,198,209,0.3)',padding:'36px 32px'}}>
+          <div style={{maxWidth:1200,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:32}}>
+            {[['Owner','Texas A&M University San Antonio'],['Location','San Antonio, TX'],['Project Size','140,000 SQ. FT.']].map(([l,v])=>(
+              <div key={l}>
+                <div style={{fontSize:'10px',fontWeight:700,letterSpacing:'0.24em',textTransform:'uppercase',color:'#9ca3af',marginBottom:8}}>{l}</div>
+                <div style={{fontSize:17,fontWeight:700,color:'#001335'}}>{v}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section style={{maxWidth:1200,margin:'0 auto',padding:'80px 32px'}}>
+          <div style={{display:'grid',gridTemplateColumns:'7fr 5fr',gap:60,alignItems:'center'}}>
+            <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1400&q=80" alt="interior" style={{width:'100%',minHeight:480,objectFit:'cover'}} />
+            <div>
+              <h2 style={{fontSize:'clamp(28px,4vw,46px)',fontWeight:900,textTransform:'uppercase',letterSpacing:'-0.05em',color:'#001335',lineHeight:1,marginBottom:16,fontFamily:'Inter,sans-serif'}}>The Vision:<br/>Technical Power</h2>
+              <div style={{height:4,width:44,background:'#af3000',marginBottom:24}}/>
+              <p style={{fontSize:16,lineHeight:1.85,color:'#6b7280',marginBottom:16}}>Alterman served as the electrical contractor for this 140,000 SF academic facility — delivering complex power distribution, intelligent lighting, life-safety systems, and data infrastructure across every floor.</p>
+              <p style={{fontSize:16,lineHeight:1.85,color:'#6b7280'}}>This page shows how a case-study layout can create stronger proof of scale, technical credibility, and capability — without adding complexity for the reader.</p>
+            </div>
+          </div>
+        </section>
+        <section style={{background:'#001335',padding:'80px 32px',color:'white'}}>
+          <div style={{maxWidth:1200,margin:'0 auto'}}>
+            <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:40,flexWrap:'wrap',gap:20}}>
+              <h2 style={{fontSize:'clamp(28px,5vw,52px)',fontWeight:900,textTransform:'uppercase',letterSpacing:'-0.04em',fontFamily:'Inter,sans-serif'}}>Technical Excellence</h2>
+              <p style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.22em',textTransform:'uppercase',color:'rgba(255,255,255,0.55)',borderLeft:'1px solid rgba(255,255,255,0.2)',paddingLeft:16,maxWidth:320}}>Engineered for zero-failure environments.</p>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:4}}>
+              {[
+                ['⚡','Power Distribution','High-capacity switchgear and distribution systems designed for a facility that cannot afford downtime.'],
+                ['💡','Intelligent Lighting','DALI-controlled smart lighting across 140,000 SF with occupancy sensing and daylight harvesting.'],
+                ['🔒','Life Safety Systems','Full integration of emergency power, fire alarm, and egress lighting to meet the highest code standards.']
+              ].map(([icon,title,copy])=>(
+                <div key={title} style={{background:'#00275d',padding:36}}>
+                  <div style={{fontSize:32,marginBottom:20,opacity:0.8}}>{icon}</div>
+                  <h3 style={{fontSize:18,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.02em',marginBottom:14,fontFamily:'Inter,sans-serif'}}>{title}</h3>
+                  <p style={{fontSize:13,lineHeight:1.8,color:'rgba(255,255,255,0.7)'}}>{copy}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section style={{background:'#fcf9f8',padding:'80px 32px'}}>
+          <div style={{maxWidth:1200,margin:'0 auto'}}>
+            <div style={{textAlign:'center',marginBottom:48}}>
+              <h2 style={{fontSize:'clamp(28px,5vw,52px)',fontWeight:900,textTransform:'uppercase',letterSpacing:'-0.05em',color:'#001335',fontFamily:'Inter,sans-serif'}}>Precision Details</h2>
+              <p style={{marginTop:12,fontSize:'11px',fontWeight:700,letterSpacing:'0.24em',textTransform:'uppercase',color:'#9ca3af'}}>A closer look at the infrastructure</p>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gridTemplateRows:'260px 260px',gap:12}}>
+              <img src={gallery[0]} alt="g1" style={{gridColumn:'span 2',gridRow:'span 2',width:'100%',height:'100%',objectFit:'cover'}} />
+              <img src={gallery[1]} alt="g2" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+              <img src={gallery[2]} alt="g3" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+              <img src={gallery[3]} alt="g4" style={{gridColumn:'span 2',width:'100%',height:'100%',objectFit:'cover'}} />
+            </div>
+          </div>
+        </section>
+      </>}
+
+      {/* FOOTER CTA */}
+      <section style={{background:'#fcf9f8',padding:'80px 32px',textAlign:'center',borderTop:'1px solid rgba(196,198,209,0.4)'}}>
+        <div style={{maxWidth:720,margin:'0 auto'}}>
+          <h2 style={{fontSize:'clamp(28px,5vw,56px)',fontWeight:900,letterSpacing:'-0.05em',color:'#001335',lineHeight:0.92,marginBottom:20,fontFamily:'Inter,sans-serif'}}>
+            A stronger front door<br/>for a legacy brand.
+          </h2>
+          <p style={{fontSize:'clamp(15px,1.8vw,20px)',fontWeight:300,lineHeight:1.75,color:'#6b7280'}}>
+            Ready to talk about bringing this vision to life? Let's build something that represents the real Alterman.
+          </p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('demo-mount'));
+root.render(React.createElement(AltermanDemo));
+`;
+</script>
+
+</body>
+</html>
